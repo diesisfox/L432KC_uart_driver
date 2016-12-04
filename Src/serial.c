@@ -123,28 +123,13 @@ int Serial2_readCommand(uint8_t *buffer){ //returns length of command
 	while(Serial2_peek() == 0x0A || Serial2_peek() == 0x0D){ //NL(LF) or CR, respectively
 		Serial2_read(); //clear leading line breaks
 	}
-	int nextNL = Serial2_find(0x0A);
-	int nextCR = Serial2_find(0x0D);
-	if(nextNL==-1){
-		if(nextCR==-1){ //no NL, no CR
-			return -1;
-		}else{ //no NL, found CR
-			Serial2_readBytes(buffer, nextCR);
-			return nextCR;
-		}
+	uint8_t delimiters[2] = {0x0A, 0x0D};
+	int nextDelim = Serial2_findAny(delimiters, 2);
+	if(nextDelim==-1){
+		return -1;
 	}else{
-		if(nextCR==-1){ //found NL, no CR
-			Serial2_readBytes(buffer, nextNL);
-			return nextNL;
-		}else{ //found both
-			if(nextNL<nextCR){
-				Serial2_readBytes(buffer, nextNL);
-				return nextNL;
-			}else{
-				Serial2_readBytes(buffer, nextCR);
-				return nextCR;
-			}
-		}
+		Serial2_readBytes(buffer, nextDelim);
+		return nextDelim;
 	}
 }
 
